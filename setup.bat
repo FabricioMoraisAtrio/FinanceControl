@@ -1,5 +1,12 @@
 @echo off
 cd /d "%~dp0"
+
+:: Adiciona PHP e MySQL do XAMPP ao PATH desta sessao
+set PATH=C:\xampp\php;C:\xampp\mysql\bin;%PATH%
+
+:: Tenta encontrar Composer globalmente ou dentro do XAMPP
+where composer >nul 2>&1 || set PATH=C:\xampp\php;%PATH%
+
 echo ========================================
 echo  FinanceControl - Setup inicial
 echo ========================================
