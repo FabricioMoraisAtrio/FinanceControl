@@ -17,24 +17,23 @@ if errorlevel 1 (
 )
 
 :: Verifica versao do PHP (precisa 8.2+)
-for /f "tokens=2 delims= " %%v in ('php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;" 2^>nul') do set PHP_VER=%%v
 php -r "exit(PHP_MAJOR_VERSION >= 8 && PHP_MINOR_VERSION >= 2 ? 0 : 1);" 2>nul
 if errorlevel 1 (
     echo.
-    echo ╔══════════════════════════════════════════════════╗
-    echo ║  ERRO: Versao do PHP incompativel                ║
-    echo ║                                                  ║
-    echo ║  Este projeto requer PHP 8.2 ou superior.        ║
-    echo ║  Versao encontrada: PHP 8.0                      ║
-    echo ║                                                  ║
-    echo ║  Solucao: Atualize o XAMPP para a versao mais    ║
-    echo ║  recente em: https://www.apachefriends.org/      ║
-    echo ╚══════════════════════════════════════════════════╝
+    echo ERRO: PHP 8.2 ou superior e necessario.
+    echo Versao encontrada: inferior a 8.2
+    echo Atualize o XAMPP em: https://www.apachefriends.org/
     echo.
     pause & exit /b
 )
-
 echo PHP OK.
+echo.
+
+:: Habilita extensao zip no php.ini (necessaria para o Composer)
+echo Habilitando extensao zip no php.ini...
+for /f %%i in ('php -r "echo php_ini_loaded_file();"') do set INI=%%i
+powershell -Command "(Get-Content '%INI%') -replace '^;extension=zip', 'extension=zip' | Set-Content '%INI%'"
+echo Feito.
 echo.
 
 :: Baixa Composer se necessario
@@ -48,13 +47,12 @@ if not exist composer.phar (
 )
 
 echo [1/5] Instalando dependencias PHP...
-php composer.phar install --no-interaction --no-scripts 2>&1
+php composer.phar install --no-interaction --prefer-dist
 if not exist vendor\autoload.php (
     echo.
-    echo ERRO: composer install falhou.
+    echo ERRO: composer install falhou. Veja a mensagem acima.
     pause & exit /b
 )
-php composer.phar run-script post-autoload-dump 2>nul
 echo.
 
 echo [2/5] Configurando .env...
@@ -62,12 +60,15 @@ if not exist .env (
     copy .env.example .env >nul
     php artisan key:generate
     echo.
-    echo IMPORTANTE: Abra o arquivo .env e configure o banco:
+    echo IMPORTANTE: Abra o arquivo .env e configure:
+    echo   DB_CONNECTION=mysql
+    echo   DB_HOST=127.0.0.1
+    echo   DB_PORT=3306
     echo   DB_DATABASE=financecontrol
     echo   DB_USERNAME=root
     echo   DB_PASSWORD=
     echo.
-    echo Pressione qualquer tecla apos configurar o .env...
+    echo Pressione qualquer tecla apos salvar o .env...
     pause >nul
 ) else (
     echo .env ja existe, pulando.
