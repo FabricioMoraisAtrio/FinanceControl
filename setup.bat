@@ -58,7 +58,7 @@ echo.
 echo [2/5] Configurando .env...
 if not exist .env (
     copy .env.example .env >nul
-    php artisan key:generate
+    echo .env criado.
     echo.
     echo IMPORTANTE: Abra o arquivo .env e configure:
     echo   DB_CONNECTION=mysql
@@ -73,6 +73,14 @@ if not exist .env (
 ) else (
     echo .env ja existe, pulando.
 )
+:: Gera APP_KEY se estiver vazio
+php -r "
+    $env = file_get_contents('.env');
+    if (strpos($env, 'APP_KEY=base64:') === false) {
+        echo 'Gerando APP_KEY...' . PHP_EOL;
+    }
+" 2>nul
+php artisan key:generate --no-interaction 2>nul
 echo.
 
 echo [3/5] Instalando dependencias JS...
