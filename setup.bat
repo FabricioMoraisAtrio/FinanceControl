@@ -16,24 +16,25 @@ if errorlevel 1 (
     pause & exit /b
 )
 
-:: Verifica versao do PHP (precisa 8.2+)
+:: Verifica versao PHP 8.2+
 php -r "exit(PHP_MAJOR_VERSION >= 8 && PHP_MINOR_VERSION >= 2 ? 0 : 1);" 2>nul
 if errorlevel 1 (
-    echo.
-    echo ERRO: PHP 8.2 ou superior e necessario.
-    echo Versao encontrada: inferior a 8.2
-    echo Atualize o XAMPP em: https://www.apachefriends.org/
-    echo.
+    echo ERRO: PHP 8.2+ necessario. Atualize o XAMPP.
+    echo https://www.apachefriends.org/
     pause & exit /b
 )
 echo PHP OK.
 echo.
 
-:: Habilita extensao zip no php.ini (necessaria para o Composer)
-echo Habilitando extensao zip no php.ini...
-for /f %%i in ('php -r "echo php_ini_loaded_file();"') do set INI=%%i
-powershell -Command "(Get-Content '%INI%') -replace '^;extension=zip', 'extension=zip' | Set-Content '%INI%'"
-echo Feito.
+:: Habilita extensao zip via PHP (mais confiavel que PowerShell)
+echo Habilitando extensao zip...
+php -r "
+    $ini = php_ini_loaded_file();
+    $content = file_get_contents($ini);
+    $content = preg_replace('/^;(extension=zip)/m', '$1', $content);
+    file_put_contents($ini, $content);
+    echo 'php.ini atualizado: ' . $ini . PHP_EOL;
+" 2>nul
 echo.
 
 :: Baixa Composer se necessario
@@ -47,10 +48,9 @@ if not exist composer.phar (
 )
 
 echo [1/5] Instalando dependencias PHP...
-php composer.phar install --no-interaction --prefer-dist
+php -d extension=zip composer.phar install --no-interaction --prefer-dist
 if not exist vendor\autoload.php (
-    echo.
-    echo ERRO: composer install falhou. Veja a mensagem acima.
+    echo ERRO: composer install falhou.
     pause & exit /b
 )
 echo.
