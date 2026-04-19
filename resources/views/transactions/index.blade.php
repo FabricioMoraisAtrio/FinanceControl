@@ -11,7 +11,27 @@
     </div>
 
     {{-- Filtros --}}
-    <form method="GET" id="filter-form" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-5 flex flex-wrap gap-3 items-end">
+    <div x-data="{ filtersOpen: false }" class="mb-5">
+
+    <button type="button" @click="filtersOpen = !filtersOpen"
+        class="md:hidden w-full flex items-center justify-between bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3 text-sm font-medium text-slate-300 mb-2">
+        <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+            </svg>
+            <span>Filtros</span>
+            @if(request()->hasAny(['type','is_fixed','account_id','account_type','category_id']))
+                <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-semibold">Ativo</span>
+            @endif
+        </div>
+        <svg :class="filtersOpen ? 'rotate-180' : ''" class="w-4 h-4 text-slate-500 transition-transform duration-200"
+             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+    </button>
+
+    <div :class="filtersOpen ? 'block' : 'hidden md:block'">
+    <form method="GET" id="filter-form" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap gap-3 items-end">
         <div>
             <label class="block text-xs text-slate-500 mb-1 font-medium">Tipo</label>
             <select name="type" onchange="this.form.submit()" class="bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
@@ -92,6 +112,8 @@
             <a href="{{ route('transactions.index') }}" class="text-sm text-slate-500 hover:text-slate-300 py-2">Limpar filtros</a>
         @endif
     </form>
+    </div>
+    </div>
 
     {{-- Totais do mês --}}
     <div class="grid grid-cols-3 gap-3 mb-5">

@@ -122,14 +122,57 @@ class CreditCardBillController extends Controller
         abort_if($account->user_id !== Auth::id(), 403);
         abort_if($account->type !== 'credit_card', 422);
 
-        $preview = $this->buildCurrentPeriodPreview($account);
+        $closingDay = $account->closing_day ?? 21;
+        $paymentDay = $account->payment_day ?? 10;
+        $preview    = $this->buildCurrentPeriodPreview($account);
 
         $closedBills = CreditCardBill::where('credit_account_id', $account->id)
             ->orderByDesc('period_end')
             ->get();
 
-        // Monta lista de meses: período atual + todos os fechados
+        // ── Parcelas futuras agrupadas por ciclo de fatura ──────────────────
+        $futureTransactions = Transaction::where('account_id', $account->id)
+            ->where('type', 'expense')
+            ->where('date', '>', $preview['period_end']->format('Y-m-d'))
+            ->orderBy('date')
+            ->with('category')
+            ->get();
+
+        $futureByPeriod = [];
+        foreach ($futureTransactions as $t) {
+            $txDate = $t->date;
+            // Determina a qual ciclo de fechamento pertence
+            if ($txDate->day <= $closingDay) {
+                $periodEnd   = Carbon::create($txDate->year, $txDate->month, $closingDay);
+            } else {
+                $periodEnd   = Carbon::create($txDate->year, $txDate->month, $closingDay)->addMonth();
+            }
+            $periodStart = $periodEnd->copy()->subMonth()->addDay();
+            $dueDate     = $periodEnd->copy()->addMonth()->startOfMonth()->addDays($paymentDay - 1);
+            $key         = $periodEnd->format('Y-m');
+
+            if (!isset($futureByPeriod[$key])) {
+                $futureByPeriod[$key] = [
+                    'label'        => $periodEnd->format('m/Y'),
+                    'period_start' => $periodStart,
+                    'period_end'   => $periodEnd,
+                    'due_date'     => $dueDate,
+                    'total'        => 0,
+                    'status'       => 'reserved',
+                    'bill'         => null,
+                    'count'        => 0,
+                ];
+            }
+            $futureByPeriod[$key]['total'] += (float) $t->amount;
+            $futureByPeriod[$key]['count']++;
+        }
+
+        // ── Monta lista com todos os meses e ordena por period_end desc ────
         $months = collect();
+
+        foreach ($futureByPeriod as $future) {
+            $months->push($future);
+        }
 
         $months->push([
             'label'        => $preview['period_end']->format('m/Y'),
@@ -139,6 +182,7 @@ class CreditCardBillController extends Controller
             'total'        => $preview['total_amount'],
             'status'       => 'open',
             'bill'         => null,
+            'count'        => null,
         ]);
 
         foreach ($closedBills as $bill) {
@@ -150,10 +194,15 @@ class CreditCardBillController extends Controller
                 'total'        => (float) $bill->total_amount,
                 'status'       => $bill->status,
                 'bill'         => $bill,
+                'count'        => null,
             ]);
         }
 
-        $totalAllTime = $months->sum('total');
+        $months = $months->sortBy(fn($m) => $m['period_end']->timestamp)->values();
+
+        $totalAllTime = Transaction::where('account_id', $account->id)
+            ->where('type', 'expense')
+            ->sum('amount');
 
         return view('credit_card_bills.months', compact('account', 'months', 'totalAllTime', 'preview'));
     }

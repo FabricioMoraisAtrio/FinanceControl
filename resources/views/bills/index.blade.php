@@ -45,7 +45,7 @@
                     <div class="absolute inset-0 opacity-10 pointer-events-none"
                          style="background: radial-gradient(ellipse at top right, {{ $account->color }}, transparent 65%)"></div>
 
-                    <div class="relative px-8 py-8 flex flex-col sm:flex-row items-center sm:justify-between gap-6">
+                    <div class="relative px-5 sm:px-8 py-6 sm:py-8 flex flex-col sm:flex-row items-center sm:justify-between gap-5 sm:gap-6">
 
                         {{-- Nome --}}
                         <div class="flex items-center gap-4">
@@ -75,9 +75,9 @@
                             $barColor = $pct === null ? 'bg-blue-500'
                                       : ($pct >= 90 ? 'bg-red-500' : ($pct >= 70 ? 'bg-yellow-500' : 'bg-blue-500'));
                         @endphp
-                        <div class="text-center min-w-[220px]">
+                        <div class="text-center w-full sm:min-w-[220px] sm:w-auto">
                             <p class="text-xs text-slate-500 uppercase tracking-widest mb-1">Total gasto no cartão</p>
-                            <p class="text-5xl font-bold text-blue-400 tracking-tight">
+                            <p class="text-4xl sm:text-5xl font-bold text-blue-400 tracking-tight">
                                 R$ {{ number_format($spent, 2, ',', '.') }}
                             </p>
                             @if($limit > 0)
@@ -97,7 +97,7 @@
                         </div>
 
                         {{-- Info direita --}}
-                        <div class="flex items-center gap-5">
+                        <div class="flex items-center gap-4 w-full sm:w-auto justify-center sm:justify-end">
                             <div class="text-right space-y-1.5 text-xs">
                                 <div class="flex justify-between gap-5">
                                     <span class="text-slate-500">Fatura atual</span>
@@ -131,12 +131,13 @@
 
                     {{-- Header clicável --}}
                     <button type="button" @click="open = !open"
-                        class="w-full flex items-center justify-between px-6 py-5 hover:bg-slate-800/50 transition-colors">
-                        <div class="text-left">
+                        class="w-full flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 hover:bg-slate-800/50 transition-colors">
+                        <div class="text-left min-w-0 flex-1">
                             <p class="text-base font-semibold text-slate-200">Fatura atual</p>
-                            <p class="text-sm text-slate-500 mt-0.5">
+                            <p class="text-xs sm:text-sm text-slate-500 mt-0.5 leading-relaxed">
                                 {{ $card['period_start']->format('d/m') }} a {{ $card['period_end']->format('d/m/Y') }}
-                                &middot;
+                                <span class="hidden sm:inline">&middot;</span>
+                                <br class="sm:hidden">
                                 <span class="{{ $daysToClose <= 3 ? 'text-red-400 font-semibold' : 'text-slate-500' }}">
                                     @if($daysToClose >= 0)
                                         fecha em {{ $daysToClose }} dia(s)
@@ -144,11 +145,10 @@
                                         período encerrado
                                     @endif
                                 </span>
-                                &middot; vence {{ $card['due_date']->format('d/m/Y') }}
                             </p>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <span class="text-2xl font-bold text-blue-400">
+                        <div class="flex items-center gap-3 shrink-0 ml-3">
+                            <span class="text-xl sm:text-2xl font-bold text-blue-400">
                                 R$ {{ number_format($card['current_total'], 2, ',', '.') }}
                             </span>
                             <svg class="w-5 h-5 text-slate-500 transition-transform duration-200"

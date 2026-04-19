@@ -21,32 +21,40 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         @foreach($months as $month)
         @php
-            $isOpen   = $month['status'] === 'open';
-            $isPaid   = $month['status'] === 'paid';
-            $isClosed = $month['status'] === 'closed';
+            $isOpen     = $month['status'] === 'open';
+            $isPaid     = $month['status'] === 'paid';
+            $isClosed   = $month['status'] === 'closed';
+            $isReserved = $month['status'] === 'reserved';
 
-            $borderColor = $isOpen   ? 'border-blue-500/40'
-                         : ($isPaid   ? 'border-slate-700'
-                         : 'border-orange-500/30');
-            $amountColor = $isOpen   ? 'text-blue-400'
-                         : ($isPaid   ? 'text-slate-300'
-                         : 'text-orange-400');
-            $bgColor     = $isOpen   ? 'bg-blue-500/5'
-                         : ($isPaid   ? 'bg-slate-900'
-                         : 'bg-orange-500/5');
+            $borderColor = $isReserved ? 'border-purple-500/30'
+                         : ($isOpen    ? 'border-blue-500/40'
+                         : ($isPaid    ? 'border-slate-700'
+                         :              'border-orange-500/30'));
+
+            $amountColor = $isReserved ? 'text-purple-400'
+                         : ($isOpen    ? 'text-blue-400'
+                         : ($isPaid    ? 'text-slate-300'
+                         :              'text-orange-400'));
+
+            $bgColor     = $isReserved ? 'bg-purple-500/5'
+                         : ($isOpen    ? 'bg-blue-500/5'
+                         : ($isPaid    ? 'bg-slate-900'
+                         :              'bg-orange-500/5'));
         @endphp
 
         <div class="{{ $bgColor }} border {{ $borderColor }} rounded-2xl p-5 flex flex-col gap-3">
 
             {{-- Mês + status --}}
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-2">
                 <span class="text-base font-bold text-white">{{ $month['label'] }}</span>
-                @if($isOpen)
-                    <span class="text-xs bg-blue-500/15 text-blue-400 px-2 py-0.5 rounded-full font-semibold">Aberto</span>
+                @if($isReserved)
+                    <span class="text-xs bg-purple-500/15 text-purple-400 px-2 py-0.5 rounded-full font-semibold shrink-0">Reservado</span>
+                @elseif($isOpen)
+                    <span class="text-xs bg-blue-500/15 text-blue-400 px-2 py-0.5 rounded-full font-semibold shrink-0">Aberto</span>
                 @elseif($isPaid)
-                    <span class="text-xs bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded-full font-semibold">✓ Paga</span>
+                    <span class="text-xs bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded-full font-semibold shrink-0">✓ Paga</span>
                 @else
-                    <span class="text-xs bg-orange-500/15 text-orange-400 px-2 py-0.5 rounded-full font-semibold">Pendente</span>
+                    <span class="text-xs bg-orange-500/15 text-orange-400 px-2 py-0.5 rounded-full font-semibold shrink-0">Pendente</span>
                 @endif
             </div>
 
@@ -54,6 +62,13 @@
             <p class="text-2xl font-bold {{ $amountColor }}">
                 R$ {{ number_format($month['total'], 2, ',', '.') }}
             </p>
+
+            {{-- Info extra --}}
+            @if($isReserved)
+                <p class="text-xs text-purple-400/70">
+                    {{ $month['count'] }} {{ $month['count'] === 1 ? 'parcela' : 'parcelas' }} agendada{{ $month['count'] === 1 ? '' : 's' }}
+                </p>
+            @endif
 
             {{-- Datas --}}
             <div class="text-xs text-slate-600 space-y-0.5">
@@ -64,7 +79,8 @@
             {{-- Ações --}}
             <div class="mt-auto pt-3 border-t border-slate-800 space-y-2">
                 <a href="{{ route('credit-card-bills.statement', ['account' => $account, 'period_start' => $month['period_start']->format('Y-m-d'), 'period_end' => $month['period_end']->format('Y-m-d')]) }}"
-                    class="block text-center text-xs text-slate-400 hover:text-blue-400 transition-colors py-1.5 rounded-lg hover:bg-slate-800">
+                    class="block text-center text-xs transition-colors py-1.5 rounded-lg hover:bg-slate-800
+                           {{ $isReserved ? 'text-purple-400/70 hover:text-purple-300' : 'text-slate-400 hover:text-blue-400' }}">
                     Ver extrato
                 </a>
                 @if($isClosed && $month['bill'])

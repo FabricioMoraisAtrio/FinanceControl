@@ -1,31 +1,32 @@
 <x-app-layout>
     <x-slot name="title">Contas em Aberto — FinanceControl</x-slot>
 
-    <div class="flex items-center justify-between mb-6 print:mb-4">
+    <div class="flex flex-wrap items-start justify-between gap-3 mb-6 print:mb-4">
         <div>
             <h1 class="text-2xl font-bold text-white">Contas em Aberto</h1>
             <p class="text-sm text-slate-500 mt-0.5">Parcelamentos futuros em andamento</p>
         </div>
-        <div class="flex items-center gap-3 print:hidden">
+        <div class="flex items-center gap-2 print:hidden">
             <button onclick="window.print()"
-                class="inline-flex items-center gap-2 border border-slate-700 hover:bg-slate-800 text-slate-300 text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors">
+                class="inline-flex items-center gap-2 border border-slate-700 hover:bg-slate-800 text-slate-300 text-sm font-semibold px-3 py-2 rounded-xl transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                 </svg>
-                Imprimir
+                <span class="hidden sm:inline">Imprimir</span>
             </button>
             <a href="{{ route('transactions.create') }}"
-                class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors">
+                class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold px-3 py-2 rounded-xl transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                Novo Parcelamento
+                <span class="hidden sm:inline">Novo Parcelamento</span>
+                <span class="sm:hidden">+ Parcela</span>
             </a>
         </div>
     </div>
 
     {{-- Filtros de pagamento --}}
-    <div class="flex items-center gap-2 mb-6 print:hidden">
+    <div class="flex flex-wrap items-center gap-2 mb-6 print:hidden">
         <a href="{{ route('open-bills.index') }}"
             class="px-4 py-2 rounded-xl text-sm font-semibold transition-colors
                 {{ !$filterType ? 'bg-slate-700 text-white' : 'text-slate-400 border border-slate-700 hover:bg-slate-800' }}">
@@ -274,7 +275,7 @@
             </div>
             @endforeach
         </div>
-        <div class="mt-4 flex items-center gap-5 text-xs text-slate-600">
+        <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-600">
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Última parcela</span>
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span> ≤ 3 meses</span>
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-orange-400 inline-block"></span> ≤ 6 meses</span>
