@@ -6,7 +6,8 @@
         <h1 class="text-xl font-bold text-white mt-1">Nova Conta</h1>
     </div>
 
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg"
+         x-data="{ type: '{{ old('type', 'checking') }}' }">
         <form action="{{ route('accounts.store') }}" method="POST" class="space-y-5">
             @csrf
 
@@ -20,7 +21,7 @@
 
             <div>
                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Tipo</label>
-                <select name="type" required
+                <select name="type" required x-model="type"
                     class="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     <option value="checking" {{ old('type') === 'checking' ? 'selected' : '' }}>Conta Corrente</option>
                     <option value="savings"  {{ old('type') === 'savings'  ? 'selected' : '' }}>Poupança</option>
@@ -30,12 +31,39 @@
                 </select>
             </div>
 
-            <div>
+            {{-- Saldo Inicial (contas comuns) --}}
+            <div x-show="type !== 'credit_card'">
                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Saldo Inicial (R$)</label>
-                <input type="number" name="initial_balance" value="{{ old('initial_balance', '0') }}" step="0.01" required
+                <input type="number" name="initial_balance" value="{{ old('initial_balance', '0') }}" step="0.01"
                     class="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 <p class="text-xs text-slate-600 mt-1">Saldo que a conta já tinha antes de usar o sistema.</p>
                 @error('initial_balance')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+
+            {{-- Campos exclusivos do cartão de crédito --}}
+            <div x-show="type === 'credit_card'" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Limite do Cartão (R$)</label>
+                    <input type="number" name="credit_limit" value="{{ old('credit_limit', '0') }}" step="0.01" min="0"
+                        class="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    @error('credit_limit')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Dia de Fechamento</label>
+                        <input type="number" name="closing_day" value="{{ old('closing_day', '21') }}" min="1" max="28"
+                            class="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        @error('closing_day')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Dia de Vencimento</label>
+                        <input type="number" name="payment_day" value="{{ old('payment_day', '10') }}" min="1" max="28"
+                            class="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        @error('payment_day')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
+                </div>
+                <p class="text-xs text-slate-600 -mt-1">O vencimento é calculado no mês seguinte ao fechamento.</p>
             </div>
 
             <div>

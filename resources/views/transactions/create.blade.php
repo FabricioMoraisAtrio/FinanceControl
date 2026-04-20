@@ -97,15 +97,15 @@
             {{-- Categoria (oculto para transferência) --}}
             <div id="field-category" class="{{ old('type', 'expense') === 'transfer' ? 'hidden' : '' }}">
                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Categoria</label>
-                <select name="category_id"
+                <select name="category_id" id="category_select"
                     class="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     <option value="">Sem categoria</option>
-                    <optgroup label="Despesas">
+                    <optgroup id="optgroup-expense" label="Despesas">
                         @foreach($categories->where('type', 'expense') as $cat)
                             <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                         @endforeach
                     </optgroup>
-                    <optgroup label="Receitas">
+                    <optgroup id="optgroup-income" label="Receitas">
                         @foreach($categories->where('type', 'income') as $cat)
                             <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                         @endforeach
@@ -206,11 +206,27 @@
     function onTypeChange(type) {
         const isTransfer    = type === 'transfer';
         const isExpense     = type === 'expense';
+        const isIncome      = type === 'income';
 
         document.getElementById('field-account-to').classList.toggle('hidden', !isTransfer);
         document.getElementById('field-category').classList.toggle('hidden', isTransfer);
         document.getElementById('field-fixed').classList.toggle('hidden', isTransfer);
         document.getElementById('field-installment').classList.toggle('hidden', !isExpense);
+
+        // Filtrar categorias pelo tipo selecionado
+        const expenseGroup = document.getElementById('optgroup-expense');
+        const incomeGroup  = document.getElementById('optgroup-income');
+        if (expenseGroup && incomeGroup) {
+            expenseGroup.style.display = isIncome    ? 'none' : '';
+            incomeGroup.style.display  = isExpense   ? 'none' : '';
+
+            // Limpa seleção se a opção escolhida ficou oculta
+            const sel = document.getElementById('category_select');
+            const chosen = sel?.options[sel.selectedIndex];
+            if (chosen?.parentElement?.style.display === 'none') {
+                sel.value = '';
+            }
+        }
 
         // Ao sair de "despesa", zera parcelamento para não enviar valor acidentalmente
         if (!isExpense) {
@@ -253,12 +269,14 @@
             this.checked ? 'translateX(20px)' : 'translateX(0)';
     });
 
-    // Ao carregar: se o toggle estiver desmarcado, garante que installment_total está vazio
+    // Ao carregar: aplica filtros e garante installment_total vazio se desmarcado
     (function init() {
         const toggle = document.getElementById('toggle-installment');
         if (!toggle.checked) {
             document.getElementById('installment_total').value = '';
         }
+        const checkedType = document.querySelector('[name="type"]:checked');
+        if (checkedType) onTypeChange(checkedType.value);
     })();
 
     // No submit: limpa installment_total se o toggle não estiver ativo

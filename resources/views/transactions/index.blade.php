@@ -11,7 +11,7 @@
     </div>
 
     {{-- Filtros --}}
-    <div x-data="{ filtersOpen: false }" class="mb-5">
+    <div x-data="{ filtersOpen: window.innerWidth >= 768 }" class="mb-5">
 
     <button type="button" @click="filtersOpen = !filtersOpen"
         class="md:hidden w-full flex items-center justify-between bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3 text-sm font-medium text-slate-300 mb-2">
@@ -30,7 +30,7 @@
         </svg>
     </button>
 
-    <div :class="filtersOpen ? 'block' : 'hidden md:block'">
+    <div :class="{ 'hidden': !filtersOpen }">
     <form method="GET" id="filter-form" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap gap-3 items-end">
         <div>
             <label class="block text-xs text-slate-500 mb-1 font-medium">Tipo</label>

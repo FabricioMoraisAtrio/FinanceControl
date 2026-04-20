@@ -21,13 +21,22 @@ class AccountController extends Controller
 
     public function store(Request $request)
     {
+        $isCreditCard = $request->input('type') === 'credit_card';
+
         $validated = $request->validate([
             'name'            => 'required|string|max:255',
             'type'            => 'required|in:checking,savings,cash,investment,credit_card',
-            'initial_balance' => 'required|numeric',
+            'initial_balance' => $isCreditCard ? 'nullable|numeric' : 'required|numeric',
+            'credit_limit'    => $isCreditCard ? 'required|numeric|min:0' : 'nullable|numeric|min:0',
+            'closing_day'     => $isCreditCard ? 'required|integer|min:1|max:28' : 'nullable|integer|min:1|max:28',
+            'payment_day'     => $isCreditCard ? 'required|integer|min:1|max:28' : 'nullable|integer|min:1|max:28',
             'color'           => 'required|string|max:7',
             'icon'            => 'required|string|max:50',
         ]);
+
+        if ($isCreditCard) {
+            $validated['initial_balance'] = 0;
+        }
 
         Auth::user()->accounts()->create($validated);
 
