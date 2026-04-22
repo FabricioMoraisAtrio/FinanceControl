@@ -1,13 +1,24 @@
 <x-app-layout>
     <x-slot name="title">Lançamentos — FinanceControl</x-slot>
 
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-4">
         <h1 class="text-2xl font-bold text-white">Lançamentos</h1>
         <a href="{{ route('transactions.create') }}"
             class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-emerald-900/30">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Novo Lançamento
         </a>
+    </div>
+
+    {{-- Busca em tempo real --}}
+    <div class="mb-4" x-data="txSearch()">
+        <input type="text" x-model="q" @input="filter()"
+            placeholder="Pesquisar por descrição, categoria, conta, valor..."
+            class="w-full bg-slate-900 border border-slate-800 text-slate-100 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-slate-600"
+            autocomplete="off">
+        <p x-show="q.length > 0" x-cloak class="text-xs text-slate-500 mt-2 pl-1">
+            <span x-text="visibleCount"></span> resultado(s) encontrado(s)
+        </p>
     </div>
 
     {{-- Filtros --}}
@@ -155,9 +166,10 @@
                         <th class="px-5 py-3.5"></th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800/60">
+                <tbody class="divide-y divide-slate-800/60" id="tx-tbody">
                     @foreach($transactions as $t)
-                    <tr class="hover:bg-slate-800/40 transition-colors group">
+                    <tr class="hover:bg-slate-800/40 transition-colors group tx-row"
+                        data-search="{{ strtolower($t->description . ' ' . ($t->category?->name ?? '') . ' ' . $t->account->name . ' ' . number_format($t->amount, 2, ',', '.') . ' ' . $t->date->format('d/m/Y') . ' ' . ($t->notes ?? '')) }}">
                         <td class="px-5 py-3.5 text-slate-500 text-xs whitespace-nowrap">{{ $t->date->format('d/m/Y') }}</td>
                         <td class="px-5 py-3.5">
                             <div class="flex items-center gap-1.5 flex-wrap">
@@ -234,6 +246,28 @@
                 </tbody>
             </table>
         </div>
+        @if($transactions->hasPages())
         <div class="mt-4">{{ $transactions->links() }}</div>
+        @endif
     @endif
 </x-app-layout>
+
+<script>
+function txSearch() {
+    return {
+        q: '',
+        visibleCount: 0,
+        filter() {
+            const term = this.q.toLowerCase().trim();
+            const rows = document.querySelectorAll('.tx-row');
+            let count  = 0;
+            rows.forEach(row => {
+                const match = term === '' || row.dataset.search.includes(term);
+                row.style.display = match ? '' : 'none';
+                if (match) count++;
+            });
+            this.visibleCount = count;
+        }
+    };
+}
+</script>

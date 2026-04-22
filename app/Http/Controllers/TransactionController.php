@@ -45,12 +45,11 @@ class TransactionController extends Controller
 
         $query->whereMonth('date', $month)->whereYear('date', $year);
 
-        $transactions = $query->orderByDesc('date')->orderByDesc('id')->paginate(25)->withQueryString();
+        $transactions = $query->orderByDesc('date')->orderByDesc('id')->paginate(200)->withQueryString();
 
         $accounts   = $user->accounts()->where('active', true)->orderBy('name')->get();
         $categories = $user->categories()->orderBy('name')->get();
 
-        // Totais do mês filtrado
         $totals = $user->transactions()
             ->whereMonth('date', $month)
             ->whereYear('date', $year)
