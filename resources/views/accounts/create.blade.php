@@ -64,6 +64,21 @@
                     </div>
                 </div>
                 <p class="text-xs text-slate-600 -mt-1">O vencimento é calculado no mês seguinte ao fechamento.</p>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Débito automático em</label>
+                    <select name="payment_account_id"
+                        class="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Não usar débito automático</option>
+                        @foreach($paymentAccounts as $pa)
+                            <option value="{{ $pa->id }}" {{ old('payment_account_id') == $pa->id ? 'selected' : '' }}>
+                                {{ $pa->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-slate-600 mt-1">Conta debitada automaticamente no vencimento da fatura.</p>
+                    @error('payment_account_id')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
             </div>
 
             <div>

@@ -46,12 +46,45 @@
 
             @if($account->type === 'credit_card')
             <div>
-                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Limite do cartão (R$)</label>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Limite do Cartão (R$)</label>
                 <input type="number" name="credit_limit" step="0.01" min="0"
                     value="{{ old('credit_limit', $account->credit_limit) }}"
                     placeholder="Ex: 5000.00"
                     class="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 @error('credit_limit')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Dia de Fechamento</label>
+                    <input type="number" name="closing_day" min="1" max="28"
+                        value="{{ old('closing_day', $account->closing_day ?? 21) }}"
+                        class="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    @error('closing_day')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Dia de Vencimento</label>
+                    <input type="number" name="payment_day" min="1" max="28"
+                        value="{{ old('payment_day', $account->payment_day ?? 10) }}"
+                        class="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    @error('payment_day')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1.5">Débito automático em</label>
+                <select name="payment_account_id"
+                    class="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Não usar débito automático</option>
+                    @foreach($paymentAccounts as $pa)
+                        <option value="{{ $pa->id }}"
+                            {{ old('payment_account_id', $account->payment_account_id) == $pa->id ? 'selected' : '' }}>
+                            {{ $pa->name }}
+                        </option>
+                    @endforeach
+                </select>
+                <p class="text-xs text-slate-600 mt-1">Conta debitada automaticamente no vencimento da fatura.</p>
+                @error('payment_account_id')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
             @endif
 

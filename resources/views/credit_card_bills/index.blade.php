@@ -157,6 +157,19 @@
                 <input type="number" name="payment_day" value="{{ $account->payment_day }}" min="1" max="31"
                     class="w-24 bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">Débito automático em</label>
+                <select name="payment_account_id"
+                    class="bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Não usar débito automático</option>
+                    @foreach($checkingAccounts as $acc)
+                        <option value="{{ $acc->id }}"
+                            {{ $account->payment_account_id == $acc->id ? 'selected' : '' }}>
+                            {{ $acc->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
             <button type="submit" class="text-sm text-slate-400 border border-slate-700 px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors">
                 Salvar configurações
             </button>

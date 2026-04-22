@@ -16,7 +16,12 @@ class AccountController extends Controller
 
     public function create()
     {
-        return view('accounts.create');
+        $paymentAccounts = Auth::user()->accounts()
+            ->whereNotIn('type', ['credit_card'])
+            ->where('active', true)
+            ->orderBy('name')
+            ->get();
+        return view('accounts.create', compact('paymentAccounts'));
     }
 
     public function store(Request $request)
@@ -24,14 +29,15 @@ class AccountController extends Controller
         $isCreditCard = $request->input('type') === 'credit_card';
 
         $validated = $request->validate([
-            'name'            => 'required|string|max:255',
-            'type'            => 'required|in:checking,savings,cash,investment,credit_card',
-            'initial_balance' => $isCreditCard ? 'nullable|numeric' : 'required|numeric',
-            'credit_limit'    => $isCreditCard ? 'required|numeric|min:0' : 'nullable|numeric|min:0',
-            'closing_day'     => $isCreditCard ? 'required|integer|min:1|max:28' : 'nullable|integer|min:1|max:28',
-            'payment_day'     => $isCreditCard ? 'required|integer|min:1|max:28' : 'nullable|integer|min:1|max:28',
-            'color'           => 'required|string|max:7',
-            'icon'            => 'required|string|max:50',
+            'name'               => 'required|string|max:255',
+            'type'               => 'required|in:checking,savings,cash,investment,credit_card',
+            'initial_balance'    => $isCreditCard ? 'nullable|numeric' : 'required|numeric',
+            'credit_limit'       => $isCreditCard ? 'required|numeric|min:0' : 'nullable|numeric|min:0',
+            'closing_day'        => $isCreditCard ? 'required|integer|min:1|max:28' : 'nullable|integer|min:1|max:28',
+            'payment_day'        => $isCreditCard ? 'required|integer|min:1|max:28' : 'nullable|integer|min:1|max:28',
+            'payment_account_id' => 'nullable|exists:accounts,id',
+            'color'              => 'required|string|max:7',
+            'icon'               => 'required|string|max:50',
         ]);
 
         if ($isCreditCard) {
@@ -47,7 +53,13 @@ class AccountController extends Controller
     public function edit(Account $account)
     {
         abort_if($account->user_id !== Auth::id(), 403);
-        return view('accounts.edit', compact('account'));
+        $paymentAccounts = Auth::user()->accounts()
+            ->whereNotIn('type', ['credit_card'])
+            ->where('active', true)
+            ->where('id', '!=', $account->id)
+            ->orderBy('name')
+            ->get();
+        return view('accounts.edit', compact('account', 'paymentAccounts'));
     }
 
     public function update(Request $request, Account $account)

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Account;
 use App\Models\CreditCardBill;
 use App\Models\Transaction;
+use App\Services\CreditCardBillService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,10 +13,14 @@ use Illuminate\Support\Facades\DB;
 
 class CreditCardBillController extends Controller
 {
+    public function __construct(private CreditCardBillService $billService) {}
+
     public function index(Account $account)
     {
         abort_if($account->user_id !== Auth::id(), 403);
         abort_if($account->type !== 'credit_card', 422);
+
+        $this->billService->processAccount($account);
 
         $bills = CreditCardBill::where('credit_account_id', $account->id)
             ->orderByDesc('period_end')
@@ -121,6 +126,8 @@ class CreditCardBillController extends Controller
     {
         abort_if($account->user_id !== Auth::id(), 403);
         abort_if($account->type !== 'credit_card', 422);
+
+        $this->billService->processAccount($account);
 
         $closingDay = $account->closing_day ?? 21;
         $paymentDay = $account->payment_day ?? 10;

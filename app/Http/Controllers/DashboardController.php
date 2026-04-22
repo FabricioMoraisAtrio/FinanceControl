@@ -4,16 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\CreditCardBill;
 use App\Models\Transaction;
+use App\Services\CreditCardBillService;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
+    public function __construct(private CreditCardBillService $billService) {}
+
     public function index()
     {
         $user  = Auth::user();
         $month = now()->month;
         $year  = now()->year;
         $today = now()->toDateString();
+
+        // Processa faturas de todos os cartões antes de calcular saldos
+        $this->billService->processUserCards($user->id);
 
         // Saldo por tipo de conta
         $accounts       = $user->accounts()->where('active', true)->orderBy('name')->get();
