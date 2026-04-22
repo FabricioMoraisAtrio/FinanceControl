@@ -20,7 +20,8 @@
         </div>
     </div>
 
-    {{-- Fatura Atual (Preview) --}}
+    {{-- Fatura Atual (Preview) — oculta se o período já foi fechado automaticamente --}}
+    @if(!$previewAlreadyClosed)
     <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-blue-500/30 rounded-2xl p-6 mb-6">
         <div class="flex items-start justify-between mb-4">
             <div>
@@ -90,6 +91,7 @@
             <p class="text-slate-600 text-sm border-t border-slate-700 pt-4">Nenhum gasto neste período.</p>
         @endif
     </div>
+    @endif
 
     {{-- Histórico de Faturas --}}
     @if($bills->isNotEmpty())

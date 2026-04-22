@@ -20,6 +20,27 @@ class CreditCardBillService
         $closingDay = $account->closing_day ?? 21;
         $paymentDay = $account->payment_day ?? 10;
 
+        // ── Corrige faturas inconsistentes com a data atual ───────────────────
+
+        // Remove faturas cujo período ainda não encerrou (criadas com data futura)
+        CreditCardBill::where('credit_account_id', $account->id)
+            ->where('period_end', '>', $today->format('Y-m-d'))
+            ->get()
+            ->each(function (CreditCardBill $bill) {
+                if ($bill->payment_transaction_id) {
+                    Transaction::find($bill->payment_transaction_id)?->delete();
+                }
+                $bill->delete();
+            });
+
+        // Reverte para "fechada" faturas marcadas como pagas antes do vencimento
+        CreditCardBill::where('credit_account_id', $account->id)
+            ->where('status', 'paid')
+            ->where('due_date', '>', $today->format('Y-m-d'))
+            ->update(['status' => 'closed']);
+
+        // ── Fecha períodos encerrados ─────────────────────────────────────────
+
         for ($i = 1; $i <= 12; $i++) {
             if ($today->day > $closingDay) {
                 $periodEnd = Carbon::create($today->year, $today->month, $closingDay)->subMonths($i - 1);

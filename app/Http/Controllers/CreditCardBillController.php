@@ -29,6 +29,11 @@ class CreditCardBillController extends Controller
 
         $preview = $this->buildCurrentPeriodPreview($account);
 
+        // Se o período atual já foi fechado automaticamente, não mostrar form de fechamento manual
+        $previewAlreadyClosed = $bills->contains(
+            fn($b) => $b->period_end->format('Y-m-d') === $preview['period_end']->format('Y-m-d')
+        );
+
         $checkingAccounts = Auth::user()->accounts()
             ->whereNotIn('type', ['credit_card'])
             ->where('active', true)
@@ -47,7 +52,7 @@ class CreditCardBillController extends Controller
             ->get();
 
         return view('credit_card_bills.index', compact(
-            'account', 'bills', 'preview', 'checkingAccounts', 'periodTransactions'
+            'account', 'bills', 'preview', 'previewAlreadyClosed', 'checkingAccounts', 'periodTransactions'
         ));
     }
 
@@ -181,16 +186,23 @@ class CreditCardBillController extends Controller
             $months->push($future);
         }
 
-        $months->push([
-            'label'        => $preview['period_end']->format('m/Y'),
-            'period_start' => $preview['period_start'],
-            'period_end'   => $preview['period_end'],
-            'due_date'     => $preview['due_date'],
-            'total'        => $preview['total_amount'],
-            'status'       => 'open',
-            'bill'         => null,
-            'count'        => null,
-        ]);
+        // Só adiciona o período "Aberto" se ainda não houver fatura fechada para ele
+        $previewAlreadyClosed = $closedBills->contains(
+            fn($b) => $b->period_end->format('Y-m-d') === $preview['period_end']->format('Y-m-d')
+        );
+
+        if (!$previewAlreadyClosed) {
+            $months->push([
+                'label'        => $preview['period_end']->format('m/Y'),
+                'period_start' => $preview['period_start'],
+                'period_end'   => $preview['period_end'],
+                'due_date'     => $preview['due_date'],
+                'total'        => $preview['total_amount'],
+                'status'       => 'open',
+                'bill'         => null,
+                'count'        => null,
+            ]);
+        }
 
         foreach ($closedBills as $bill) {
             $months->push([
